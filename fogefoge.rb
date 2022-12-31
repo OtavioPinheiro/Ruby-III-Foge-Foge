@@ -33,10 +33,11 @@ def calcula_nova_posicao(heroi, direcao)
 end
 
 def move_fantasma(mapa, linha, coluna)
-  mapa[linha][coluna] = " "
-  linha += 0
-  coluna += 1
-  mapa[linha][coluna] = "F"
+  posicao = [linha, coluna + 1]
+  if posicao_valida? mapa, posicao
+    mapa[linha][coluna] = " "
+    mapa[posicao[0]][posicao[1]] = "F"
+  end
 end
 
 def move_fantasmas(mapa)
