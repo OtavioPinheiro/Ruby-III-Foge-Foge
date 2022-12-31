@@ -77,9 +77,7 @@ def joga(nome)
     unless posicao_valida?(mapa, nova_posicao)
       next
     end
-
-    puts "#{heroi}"
-    puts "#{nova_posicao}"
+    
     mapa[heroi[0]][heroi[1]] = " "
     mapa[nova_posicao[0]][nova_posicao[1]] = "H"
     
