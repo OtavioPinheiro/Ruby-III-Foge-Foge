@@ -15,3 +15,8 @@ end
 def desenha(mapa)
   puts mapa
 end
+
+def game_over
+  puts("\n\n")
+  puts("GAME OVER!!")
+end

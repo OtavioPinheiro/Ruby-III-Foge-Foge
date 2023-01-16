@@ -14,6 +14,7 @@ def encontra_jogador(mapa)
       return [linha, coluna_do_heroi]
     end
   end
+  false
 end
 
 def calcula_nova_posicao(heroi, direcao)
@@ -32,27 +33,52 @@ def calcula_nova_posicao(heroi, direcao)
   heroi
 end
 
-def move_fantasma(mapa, linha, coluna)
-  posicao = [linha, coluna + 1]
-  if posicao_valida? mapa, posicao
-    mapa[linha][coluna] = " "
-    mapa[posicao[0]][posicao[1]] = "F"
+def soma_vetor(vetor1, vetor2)
+  [vetor1[0] + vetor2[0], vetor1[1] + vetor2[1]]
+end
+
+def posicoes_validas_a_partir_de(mapa, novo_mapa, posicao)
+  posicoes = []
+  movimentos = [[+1, 0],[0, +1],[-1, 0],[0, -1]]
+  movimentos.each do |movimento|
+    nova_posicao = soma_vetor(movimento, posicao)
+    puts(nova_posicao)
+    if posicao_valida?(mapa, nova_posicao, "F") && posicao_valida?(novo_mapa, nova_posicao, "F")
+      posicoes << nova_posicao
+    end
   end
+  posicoes
+end
+
+def move_fantasma(mapa, novo_mapa, linha, coluna)
+  posicoes = posicoes_validas_a_partir_de(mapa, novo_mapa, [linha, coluna])
+  return if posicoes.empty?
+  
+  aleatoria = rand(posicoes.size)
+  posicao = posicoes[aleatoria]
+  mapa[linha][coluna] = " "
+  novo_mapa[posicao[0]][posicao[1]] = "F"
+end
+
+def copia_mapa(mapa)
+  novo_mapa = mapa.join("\n").tr("F", " ").split("\n")
 end
 
 def move_fantasmas(mapa)
   caractere_do_fantasma = "F"
+  novo_mapa = copia_mapa(mapa)
   mapa.each_with_index do |linha_atual, linha|
     linha_atual.chars.each_with_index do |caractere_atual, coluna|
       eh_fantasma = caractere_atual == caractere_do_fantasma
       if eh_fantasma
-        move_fantasma(mapa, linha, coluna)
+        move_fantasma(mapa, novo_mapa, linha, coluna)
       end
     end
   end
+  novo_mapa
 end
 
-def posicao_valida?(mapa, nova_posicao)
+def posicao_valida?(mapa, nova_posicao, personagem)
   linhas = mapa.size
   colunas = mapa[0].size
   posicao_atual = mapa[nova_posicao[0]][nova_posicao[1]]
@@ -61,10 +87,30 @@ def posicao_valida?(mapa, nova_posicao)
   colidiu_com_a_parede = posicao_atual == "X"
   colidiu_com_um_fantasma = posicao_atual == "F"
 
-  if estourou_linhas || estourou_colunas || colidiu_com_a_parede || colidiu_com_um_fantasma
-    return false
+  if personagem == "H"
+    if estourou_linhas || estourou_colunas || colidiu_com_a_parede
+      return false
+    end
+  else
+    if estourou_linhas || estourou_colunas || colidiu_com_a_parede || colidiu_com_um_fantasma
+      return false
+    end
   end
+  
   true
+end
+
+def colidiu_com_fantasma?(mapa, nova_posicao)
+  posicao_atual = mapa[nova_posicao[0]][nova_posicao[1]]
+  colidiu_com_um_fantasma = posicao_atual == "F"
+  if colidiu_com_um_fantasma
+    return true
+  end
+  false
+end
+
+def jogador_perdeu?(mapa)
+  !encontra_jogador(mapa)
 end
 
 def joga(nome)
@@ -75,15 +121,23 @@ def joga(nome)
     nova_posicao = encontra_jogador(mapa)
     direcao = pede_movimento
     nova_posicao = calcula_nova_posicao(nova_posicao, direcao)
-
-    unless posicao_valida?(mapa, nova_posicao)
+    
+    unless posicao_valida?(mapa, nova_posicao, "H")
       next
     end
     
-    mapa[heroi[0]][heroi[1]] = " "
-    mapa[nova_posicao[0]][nova_posicao[1]] = "H"
+    if colidiu_com_fantasma?(mapa, nova_posicao)
+      mapa[heroi[0]][heroi[1]] = " "
+    else
+      mapa[heroi[0]][heroi[1]] = " "
+      mapa[nova_posicao[0]][nova_posicao[1]] = "H"
+    end
     
-    move_fantasmas(mapa)
+    mapa = move_fantasmas(mapa)
+    if jogador_perdeu?(mapa)
+      game_over
+      break
+    end
   end
 end
 
