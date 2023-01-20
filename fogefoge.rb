@@ -1,4 +1,5 @@
 require_relative 'ui'
+require_relative 'heroi'
 
 def le_mapa(numero)
   arquivo = "mapa#{numero}.txt"
@@ -11,26 +12,13 @@ def encontra_jogador(mapa)
   mapa.each_with_index do |linha_atual, linha|
     coluna_do_heroi = linha_atual.index(caracter_do_heroi)
     if coluna_do_heroi
-      return [linha, coluna_do_heroi]
+      jogador = Heroi.new
+      jogador.linha = linha
+      jogador.coluna = coluna_do_heroi
+      return jogador
     end
   end
   false
-end
-
-def calcula_nova_posicao(heroi, direcao)
-  case direcao
-    when "W"
-        heroi[0] -= 1
-    when "S"
-        heroi[0] += 1
-    when "A"
-        heroi[1] -= 1
-    when "D"
-        heroi[1] += 1
-    else
-      heroi
-  end
-  heroi
 end
 
 def soma_vetor(vetor1, vetor2)
@@ -42,9 +30,10 @@ def posicoes_validas_a_partir_de(mapa, novo_mapa, posicao)
   movimentos = [[+1, 0],[0, +1],[-1, 0],[0, -1]]
   movimentos.each do |movimento|
     nova_posicao = soma_vetor(movimento, posicao)
-    puts(nova_posicao)
     if posicao_valida?(mapa, nova_posicao, "F") && posicao_valida?(novo_mapa, nova_posicao, "F")
       posicoes << nova_posicao
+    else
+      posicoes << posicao
     end
   end
   posicoes
@@ -117,20 +106,23 @@ def joga(nome)
   mapa = le_mapa(2)
   while true
     desenha(mapa)
-    heroi = encontra_jogador(mapa)
-    nova_posicao = encontra_jogador(mapa)
     direcao = pede_movimento
-    nova_posicao = calcula_nova_posicao(nova_posicao, direcao)
+    heroi = encontra_jogador(mapa)
+    # nova_posicao = encontra_jogador(mapa)
+    nova_posicao = heroi.calcula_nova_posicao(direcao)
     
-    unless posicao_valida?(mapa, nova_posicao, "H")
+    unless posicao_valida?(mapa, nova_posicao.to_array, "H")
       next
     end
     
-    if colidiu_com_fantasma?(mapa, nova_posicao)
-      mapa[heroi[0]][heroi[1]] = " "
+    if colidiu_com_fantasma?(mapa, nova_posicao.to_array)
+      # mapa[heroi[0]][heroi[1]] = " "
+      heroi.remove_do(mapa)
     else
-      mapa[heroi[0]][heroi[1]] = " "
-      mapa[nova_posicao[0]][nova_posicao[1]] = "H"
+      # mapa[heroi[0]][heroi[1]] = " "
+      # mapa[nova_posicao[0]][nova_posicao[1]] = "H"
+      heroi.remove_do(mapa)
+      nova_posicao.coloca_no(mapa)
     end
     
     mapa = move_fantasmas(mapa)
