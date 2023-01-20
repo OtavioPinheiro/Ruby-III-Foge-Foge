@@ -102,13 +102,30 @@ def jogador_perdeu?(mapa)
   !encontra_jogador(mapa)
 end
 
+def executa_remocao(mapa, posicao, qtde)
+  if mapa[posicao.linha][posicao.coluna] == "X"
+    return 
+  end
+  posicao.remove_do(mapa)
+  remove(mapa, posicao, qtde - 1)
+end
+
+def remove(mapa, posicao, qtde)
+  if qtde == 0
+    return
+  end
+  executa_remocao(mapa, posicao.direita, qtde)
+  executa_remocao(mapa, posicao.esquerda, qtde)
+  executa_remocao(mapa, posicao.cima, qtde)
+  executa_remocao(mapa, posicao.baixo, qtde)
+end
+
 def joga(nome)
-  mapa = le_mapa(2)
+  mapa = le_mapa(4)
   while true
     desenha(mapa)
     direcao = pede_movimento
     heroi = encontra_jogador(mapa)
-    # nova_posicao = encontra_jogador(mapa)
     nova_posicao = heroi.calcula_nova_posicao(direcao)
     
     unless posicao_valida?(mapa, nova_posicao.to_array, "H")
@@ -116,12 +133,12 @@ def joga(nome)
     end
     
     if colidiu_com_fantasma?(mapa, nova_posicao.to_array)
-      # mapa[heroi[0]][heroi[1]] = " "
       heroi.remove_do(mapa)
     else
-      # mapa[heroi[0]][heroi[1]] = " "
-      # mapa[nova_posicao[0]][nova_posicao[1]] = "H"
       heroi.remove_do(mapa)
+      if mapa[nova_posicao.linha][nova_posicao.coluna] == "*"
+        remove(mapa, nova_posicao, 4)
+      end
       nova_posicao.coloca_no(mapa)
     end
     
